@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rush – Reklamestorskjerm</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#08090d;color:#fff;font-family:Arial,Helvetica,sans-serif}
+#app{height:100dvh;display:flex;flex-direction:column;background:#08090d}
+#ads{width:100%;height:76%;border:0;background:#08090d;display:block}
+#bottom{height:24%;display:flex;flex-direction:column;padding:8px 12px 10px;gap:8px;background:#090b12}
+#bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+#brand{font-size:clamp(16px,2vw,30px);font-weight:900;letter-spacing:.05em}#clockblock{text-align:right}#clock{font-size:clamp(16px,2vw,28px);font-weight:900;font-variant-numeric:tabular-nums}#date{font-size:clamp(9px,.9vw,14px);color:#e0e5ef}
+#cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;flex:1;min-height:0}
+.card{min-width:0;border-radius:10px;padding:clamp(8px,1vw,16px);display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;border:1px solid #ffffff44;box-shadow:0 5px 15px #0005}
+.name{font-size:clamp(13px,1.65vw,26px);font-weight:900}.status{font-size:clamp(8px,.85vw,13px);font-weight:900;letter-spacing:.08em;margin-bottom:4px}.remaining{font-size:clamp(15px,2vw,31px);font-weight:900;white-space:nowrap;font-variant-numeric:tabular-nums}.detail{font-size:clamp(8px,.85vw,13px);font-weight:700;margin-top:4px}
+.pink{background:#ed168f;color:white}.red{background:#ed3030;color:white}.silver{background:#c0c0c0;color:#191919}.green{background:#22b95c;color:#101010}.orange{background:#ff8c20;color:#191919}.blue{background:#1688ff;color:white}.yellow{background:#ffe333;color:#191919}.purple{background:#a64dff;color:white}.black{background:#242424;color:white}.white{background:#f1f1f1;color:#191919}.done{background:#202127;color:white;border:2px solid #ffffff88}
+@media(max-width:700px){#bottom{padding:5px;gap:5px}#cards{gap:4px}.card{padding:5px;border-radius:6px}.name{font-size:clamp(10px,2.2vw,16px)}.status,.detail{font-size:clamp(7px,1.25vw,10px)}.remaining{font-size:clamp(11px,2.5vw,18px)}}
+</style>
+</head>
+<body><main id="app">
+<iframe id="ads" title="Rush reklamer" src="https://docs.google.com/presentation/d/e/2PACX-1vQtMPcDOLCuCXQIKQdKwSS-7VStxh-4RX3l9DOoMgpACGnM1oKk8X1jC-d2-BnZTjv3tC0Q068ip7XS/embed?start=true&loop=true&delayms=10000" allowfullscreen></iframe>
+<section id="bottom"><header id="bar"><div id="brand">RUSH · DAGENS ARMBÅND</div><div id="clockblock"><div id="clock">00:00:00</div><div id="date"></div></div></header><section id="cards"></section></section>
+</main>
+<script>
+const colors=[{name:"ROSA",cls:"pink"},{name:"RØD",cls:"red"},{name:"SØLV",cls:"silver"},{name:"GRØNN",cls:"green"},{name:"ORANSJE",cls:"orange"},{name:"BLÅ",cls:"blue"},{name:"GUL",cls:"yellow"},{name:"LILLA",cls:"purple"},{name:"SVART",cls:"black"},{name:"HVIT",cls:"white"}];
+const firstFinish=630,step=30;
+function parts(n){return Object.fromEntries(new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Oslo",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).formatToParts(n).map(x=>[x.type,x.value]))}
+function weekday(n){return new Intl.DateTimeFormat("en-US",{timeZone:"Europe/Oslo",weekday:"short"}).format(n)}
+function fmt(s){s=Math.max(0,Math.floor(s));let h=Math.floor(s/3600),m=Math.floor(s%3600/60),q=s%60;return h?`${h}t ${String(m).padStart(2,"0")}m`:`${String(m).padStart(2,"0")}:${String(q).padStart(2,"0")}`}
+function render(){const now=new Date(),p=parts(now),minute=+p.hour*60 + +p.minute,wd=weekday(now);document.getElementById("clock").textContent=`${p.hour}:${p.minute}:${p.second}`;document.getElementById("date").textContent=new Intl.DateTimeFormat("nb-NO",{timeZone:"Europe/Oslo",weekday:"long",day:"numeric",month:"long"}).format(now);
+const k=Math.floor((minute-firstFinish)/step);let upcoming=[],last=null,finished=false;if(minute<firstFinish){for(let i=0;i<4;i++)upcoming.push({i,finish:firstFinish+i*step,seconds:(firstFinish+i*step-minute)*60-(+p.second)})}else{finished=(((minute-firstFinish)-k*step)*60+(+p.second))<120;last=((k%colors.length)+colors.length)%colors.length;for(let i=k+1;i<k+1+(finished?3:4);i++)upcoming.push({i,finish:firstFinish+i*step,seconds:(firstFinish+i*step-minute)*60-(+p.second)})}
+const cards=document.getElementById("cards");cards.innerHTML="";if(finished&&last!==null){const d=colors[last],el=document.createElement("article");el.className="card done";el.innerHTML=`<div class="name">${d.name}</div><div><div class="status">STATUS</div><div class="remaining">FERDIG</div><div class="detail">Ferdigtid passert</div></div>`;cards.appendChild(el)}
+upcoming.forEach(it=>{const c=colors[((it.i%colors.length)+colors.length)%colors.length],end=((it.finish%1440)+1440)%1440,t=`${String(Math.floor(end/60)).padStart(2,"0")}:${String(end%60).padStart(2,"0")}`,el=document.createElement("article");el.className=`card ${c.cls}`;el.innerHTML=`<div class="name">${c.name}</div><div><div class="status">FERDIG OM</div><div class="remaining">${fmt(it.seconds)}</div><div class="detail">Ferdig kl. ${t}</div></div>`;cards.appendChild(el)})}
+render();setInterval(render,1000);
+</script></body></html>
